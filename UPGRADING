@@ -1,80 +1,116 @@
-$Id$
-
-PHP X.Y UPGRADE NOTES
+PHP 7.1 UPGRADE NOTES
 
 1. Backward Incompatible Changes
 2. New Features
-2. Changes in SAPI modules
-3. Deprecated Functionality
-4. Changed Functions
-5. New Functions
-6. New Classes and Interfaces
-7. Removed Extensions
-8. Other Changes to Extensions
-9. New Global Constants
-10. Changes to INI File Handling
-11. Other Changes
+3. Changes in SAPI modules
+4. Deprecated Functionality
+5. Changed Functions
+6. New Functions
+7. New Classes and Interfaces
+8. Removed Extensions and SAPIs
+9. Other Changes to Extensions
+10. New Global Constants
+11. Changes to INI File Handling
+12. Windows Support
+13. Other Changes
 
 
 ========================================
 1. Backward Incompatible Changes
 ========================================
+- Core:
+  . 'void' can no longer be used as the name of a class, interface, or trait.
+    This applies to declarations, class_alias() and use statements.
 
+- JSON:
+  . When calling json_encode with JSON_UNESCAPED_UNICODE option, U+2028 and
+    U+2029 are escaped.
 
 ========================================
 2. New Features
 ========================================
-
-
-========================================
-2. Changes in SAPI modules
-========================================
-
+- Core
+  . Added void return type, which requires that a function not return a value.
+    (RFC: https://wiki.php.net/rfc/void_return_type)
 
 ========================================
-3. Deprecated Functionality
+3. Changes in SAPI modules
 ========================================
 
-
 ========================================
-4. Changed Functions
-========================================
-
-- cURL:
-  CURLOPT_SAFE_UPLOAD is now turned on by default and uploads with @file 
-  do not work unless it is explicitly set to false.
-
-========================================
-5. New Functions
+4. Deprecated Functionality
 ========================================
 
+========================================
+5. Changed Functions
+========================================
+- get_headers() has an extra parameter which allows passing a custom stream
+  context.
+- The first $varname argument for getenv() is no longer mandatory, the
+  current environment variables will be returned as an associative array
+  when omitted.
+- json_encode() accepts new option JSON_UNESCAPED_LINE_TERMINATORS that
+  disables escaping of U+2028 and U+2029 characters when
+  JSON_UNESCAPED_UNICODE is supplied.
+- long2ip() accepts integer as parameter now
+- pg_last_notice() accepts optional long parameter to specify operation.
+  PGSQL_NOTICE_LAST - Get last notice (Default)
+  PGSQL_NOTICE_ALL - Get all stored notices
+  PGSQL_NOTICE_CLEAR - Remove all stored notices
+  It returns empty string or array on successful PGSQL_NOTICE_LAST/ALL calls.
+  It returned FALSE for empty notice previously.
+- pg_fetch_all() accepts 2nd optional result type parameter like
+  pg_fetch_row().
+- pg_select() accepts 4th optional result type parameter like pg_fetch_row().
+- parse_url() is more restrictive now and supports RFC3986.
 
 ========================================
-6. New Classes and Interfaces
+6. New Functions
 ========================================
 
-
 ========================================
-7. Removed Extensions
-========================================
-
-
-========================================
-8. Other Changes to Extensions
+7. New Classes and Interfaces
 ========================================
 
-
 ========================================
-9. New Global Constants
-========================================
-
-
-========================================
-10. Changes to INI File Handling
+8. Removed Extensions and SAPIs
 ========================================
 
+========================================
+9. Other Changes to Extensions
+========================================
+- SQLite3:
+  . Upgraded bundled SQLite lib to 3.9.2
 
 ========================================
-11. Other Changes
+10. New Global Constants
+========================================
+
+- JSON:
+  . JSON_UNESCAPED_LINE_TERMINATORS
+
+- Pgsql:
+  PGSQL_NOTICE_LAST
+  PGSQL_NOTICE_ALL
+  PGSQL_NOTICE_CLEAR
+
+========================================
+11. Changes to INI File Handling
+========================================
+
+========================================
+12. Windows Support
+========================================
+
+- Core:
+  . Support for ftok()
+
+- FCGI
+  . PHP_FCGI_CHILDREN is respected. If this environment variable is defined,
+    the first php-fcgi.exe process will exec the specified number of children.
+    Those will share the same TCP socket. 
+
+========================================
+13. Other Changes
 ========================================
 

@@ -1,8 +1,8 @@
 /*
    +----------------------------------------------------------------------+
-   | PHP Version 5                                                        |
+   | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2013 The PHP Group                                |
+   | Copyright (c) 1997-2016 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -122,9 +122,8 @@ static ps_sd *ps_sd_new(ps_mm *data, const char *key)
 
 	sd = mm_malloc(data->mm, sizeof(ps_sd) + keylen);
 	if (!sd) {
-		TSRMLS_FETCH();
 
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "mm_malloc failed, avail %d, err %s", mm_available(data->mm), mm_error());
+		php_error_docref(NULL, E_WARNING, "mm_malloc failed, avail %ld, err %s", mm_available(data->mm), mm_error());
 		return NULL;
 	}
 
@@ -208,8 +207,22 @@ static ps_sd *ps_sd_lookup(ps_mm *data, const char *key, int rw)
 	return ret;
 }
 
+static int ps_mm_key_exists(ps_mm *data, const char *key)
+{
+	ps_sd *sd;
+
+	if (!key) {
+		return FAILURE;
+	}
+	sd = ps_sd_lookup(data, key, 0);
+	if (sd) {
+		return SUCCESS;
+	}
+	return FAILURE;
+}
+
 ps_module ps_mod_mm = {
-	PS_MOD(mm)
+	PS_MOD_SID(mm)
 };
 
 #define PS_MM_DATA ps_mm *data = PS_GET_MOD_DATA()
@@ -271,6 +284,8 @@ PHP_MINIT_FUNCTION(ps_mm)
 	}
 
 	if (!(euid_len = slprintf(euid, sizeof(euid), "%d", geteuid()))) {
+		free(ps_mm_instance);
+		ps_mm_instance = NULL;
 		return FAILURE;
 	}
 
@@ -339,12 +354,28 @@ PS_READ_FUNC(mm)
 
 	mm_lock(data->mm, MM_LOCK_RD);
 
-	sd = ps_sd_lookup(data, key, 0);
+	/* If there is an ID and strict mode, verify existence */
+	if (PS(use_strict_mode)
+		&& ps_mm_key_exists(data, key->val) == FAILURE) {
+		/* key points to PS(id), but cannot change here. */
+		if (key) {
+			efree(PS(id));
+			PS(id) = NULL;
+		}
+		PS(id) = PS(mod)->s_create_sid((void **)&data);
+		if (!PS(id)) {
+			return FAILURE;
+		}
+		if (PS(use_cookies)) {
+			PS(send_cookie) = 1;
+		}
+		php_session_reset_id();
+		PS(session_status) = php_session_active;
+	}
+
+	sd = ps_sd_lookup(data, PS(id)->val, 0);
 	if (sd) {
-		*vallen = sd->datalen;
-		*val = emalloc(sd->datalen + 1);
-		memcpy(*val, sd->data, sd->datalen);
-		(*val)[sd->datalen] = '\0';
+		*val = zend_string_init(sd->data, sd->datalen, 0);
 		ret = SUCCESS;
 	}
 
@@ -360,29 +391,29 @@ PS_WRITE_FUNC(mm)
 
 	mm_lock(data->mm, MM_LOCK_RW);
 
-	sd = ps_sd_lookup(data, key, 1);
+	sd = ps_sd_lookup(data, key->val, 1);
 	if (!sd) {
-		sd = ps_sd_new(data, key);
-		ps_mm_debug(("new entry for %s\n", key));
+		sd = ps_sd_new(data, key->val);
+		ps_mm_debug(("new entry for %s\n", key->val));
 	}
 
 	if (sd) {
-		if (vallen >= sd->alloclen) {
+		if (val->len >= sd->alloclen) {
 			if (data->mm) {
 				mm_free(data->mm, sd->data);
 			}
-			sd->alloclen = vallen + 1;
+			sd->alloclen = val->len + 1;
 			sd->data = mm_malloc(data->mm, sd->alloclen);
 
 			if (!sd->data) {
 				ps_sd_destroy(data, sd);
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "cannot allocate new data segment");
+				php_error_docref(NULL, E_WARNING, "cannot allocate new data segment");
 				sd = NULL;
 			}
 		}
 		if (sd) {
-			sd->datalen = vallen;
-			memcpy(sd->data, val, vallen);
+			sd->datalen = val->len;
+			memcpy(sd->data, val->val, val->len);
 			time(&sd->ctime);
 		}
 	}
@@ -399,7 +430,7 @@ PS_DESTROY_FUNC(mm)
 
 	mm_lock(data->mm, MM_LOCK_RW);
 
-	sd = ps_sd_lookup(data, key, 0);
+	sd = ps_sd_lookup(data, key->val, 0);
 	if (sd) {
 		ps_sd_destroy(data, sd);
 	}
@@ -440,6 +471,29 @@ PS_GC_FUNC(mm)
 	mm_unlock(data->mm);
 
 	return SUCCESS;
+}
+
+PS_CREATE_SID_FUNC(mm)
+{
+	zend_string *sid;
+	int maxfail = 3;
+	PS_MM_DATA;
+
+	do {
+		sid = php_session_create_id((void **)&data);
+		/* Check collision */
+		if (ps_mm_key_exists(data, sid->val) == SUCCESS) {
+			if (sid) {
+				zend_string_release(sid);
+				sid = NULL;
+			}
+			if (!(maxfail--)) {
+				return NULL;
+			}
+		}
+	} while(!sid);
+
+	return sid;
 }
 
 #endif

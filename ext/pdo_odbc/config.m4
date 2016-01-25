@@ -3,25 +3,25 @@ dnl config.m4 for extension pdo_odbc
 dnl vim:et:sw=2:ts=2:
 
 define([PDO_ODBC_HELP_TEXT],[[
-                            include and lib dirs are looked for under 'dir'.
-                            
-                            'flavour' can be one of:  ibm-db2, iODBC, unixODBC, generic
-                            If ',dir' part is omitted, default for the flavour 
-                            you have selected will used. e.g.:
-                            
-                              --with-pdo-odbc=unixODBC
-                              
-                            will check for unixODBC under /usr/local. You may attempt 
-                            to use an otherwise unsupported driver using the \"generic\" 
-                            flavour.  The syntax for generic ODBC support is:
-                            
-                              --with-pdo-odbc=generic,dir,libname,ldflags,cflags
+			  include and lib dirs are looked for under 'dir'.
 
-                            When build as shared the extension filename is always pdo_odbc.so]])
+			  'flavour' can be one of:  ibm-db2, iODBC, unixODBC, generic
+			  If ',dir' part is omitted, default for the flavour 
+			  you have selected will be used. e.g.:
+
+			    --with-pdo-odbc=unixODBC
+
+			  will check for unixODBC under /usr/local. You may attempt 
+			  to use an otherwise unsupported driver using the \"generic\" 
+			  flavour.  The syntax for generic ODBC support is:
+
+			    --with-pdo-odbc=generic,dir,libname,ldflags,cflags
+
+			  When built as 'shared' the extension filename is always pdo_odbc.so]])
 
 PHP_ARG_WITH(pdo-odbc, for ODBC v3 support for PDO,
 [  --with-pdo-odbc=flavour,dir
-                            PDO: Support for 'flavour' ODBC driver.]PDO_ODBC_HELP_TEXT)
+                          PDO: Support for 'flavour' ODBC driver.]PDO_ODBC_HELP_TEXT)
 
 
 AC_DEFUN([PDO_ODBC_CHECK_HEADER],[
@@ -50,8 +50,8 @@ if test "$PHP_PDO_ODBC" != "no"; then
       pdo_cv_inc_path=$abs_srcdir/ext
     elif test -f $abs_srcdir/ext/pdo/php_pdo_driver.h; then
       pdo_cv_inc_path=$abs_srcdir/ext
-    elif test -f $prefix/include/php/ext/pdo/php_pdo_driver.h; then
-      pdo_cv_inc_path=$prefix/include/php/ext
+    elif test -f $phpincludedir/ext/pdo/php_pdo_driver.h; then
+      pdo_cv_inc_path=$phpincludedir/ext
     else
       AC_MSG_ERROR([Cannot find php_pdo_driver.h.])
     fi

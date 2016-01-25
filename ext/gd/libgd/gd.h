@@ -112,7 +112,7 @@ int gdAlphaBlend(int dest, int src);
 
  *  GD_BELL				 - Bell
  *  GD_BESSEL			 - Bessel
- *  GD_BILINEAR_FIXED 	 - fixed point bilinear 
+ *  GD_BILINEAR_FIXED 	 - fixed point bilinear
  *  GD_BICUBIC 			 - Bicubic
  *  GD_BICUBIC_FIXED 	 - fixed point bicubic integer
  *  GD_BLACKMAN			 - Blackman
@@ -362,8 +362,12 @@ gdImagePtr gdImageCreateFromPng(FILE *fd);
 gdImagePtr gdImageCreateFromPngCtx(gdIOCtxPtr in);
 gdImagePtr gdImageCreateFromWBMP(FILE *inFile);
 gdImagePtr gdImageCreateFromWBMPCtx(gdIOCtx *infile);
-gdImagePtr gdImageCreateFromJpeg(FILE *infile, int ignore_warning);
-gdImagePtr gdImageCreateFromJpegCtx(gdIOCtx *infile, int ignore_warning);
+gdImagePtr gdImageCreateFromJpeg(FILE *infile);
+gdImagePtr gdImageCreateFromJpegEx(FILE *infile, int ignore_warning);
+gdImagePtr gdImageCreateFromJpegCtx(gdIOCtx *infile);
+gdImagePtr gdImageCreateFromJpegCtxEx(gdIOCtx *infile, int ignore_warning);
+gdImagePtr gdImageCreateFromJpegPtr (int size, void *data);
+gdImagePtr gdImageCreateFromJpegPtrEx (int size, void *data, int ignore_warning);
 gdImagePtr gdImageCreateFromWebp(FILE *fd);
 gdImagePtr gdImageCreateFromWebpCtx(gdIOCtxPtr in);
 gdImagePtr gdImageCreateFromWebpPtr (int size, void *data);
@@ -467,7 +471,7 @@ typedef struct {
 	double linespacing;	/* fine tune line spacing for '\n' */
 	int flags;		/* Logical OR of gdFTEX_ values */
 	int charmap;		/* TBB: 2.0.12: may be gdFTEX_Unicode,
-				   gdFTEX_Shift_JIS, or gdFTEX_Big5;
+				   gdFTEX_Shift_JIS, gdFTEX_Big5 or gdFTEX_MacRoman;
 				   when not specified, maps are searched
 				   for in the above order. */
 	int hdpi;
@@ -483,6 +487,7 @@ typedef struct {
 #define gdFTEX_Unicode 0
 #define gdFTEX_Shift_JIS 1
 #define gdFTEX_Big5 2
+#define gdFTEX_MacRoman 3
 
 /* FreeType 2 text output with fine tuning */
 char *
@@ -777,7 +782,7 @@ int gdImageBrightness(gdImagePtr src, int brightness);
 /* Set the contrast level <contrast> for the image <src> */
 int gdImageContrast(gdImagePtr src, double contrast);
 
-/* Simply adds or substracts respectively red, green or blue to a pixel */
+/* Simply adds or subtracts respectively red, green or blue to a pixel */
 int gdImageColor(gdImagePtr src, const int red, const int green, const int blue, const int alpha);
 
 /* Image convolution by a 3x3 custom matrix */

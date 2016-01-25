@@ -28,8 +28,11 @@ MySQLPDOTest::skip();
 
 	try {
 
-		if (NULL !== ($db = @new PDO()))
-			printf("[001] Too few parameters\n");
+	    try {
+			if (NULL !== ($db = @new PDO()))
+				printf("[001] Too few parameters\n");
+		} catch (TypeError $ex) {
+		}
 
 		print tryandcatch(2, '$db = new PDO(chr(0));');
 		print tryandcatch(3, '$db = new PDO("a" . chr(0) . "b");');
@@ -49,7 +52,8 @@ MySQLPDOTest::skip();
 
 		// should fail
 		$dsn = 'mysql:';
-		print tryandcatch(10, '$db = new PDO("' . $dsn . '", "' . $user . '", "' . $pass . '");');
+		// don't print the message since it can be different
+		tryandcatch(10, '$db = new PDO("' . $dsn . '", "' . $user . '", "' . $pass . '");');
 
 		$dsn = PDO_MYSQL_TEST_DSN;
 		$user = PDO_MYSQL_TEST_USER;
@@ -57,14 +61,15 @@ MySQLPDOTest::skip();
 		// should work...
 		$db = new PDO($dsn, $user, $pass);
 
+		// Reaction on host not specified differs for different configs, so no printing
 		$dsn = 'mysql:invalid=foo';
-		print tryandcatch(11, '$db = new PDO("' . $dsn . '", "' . $user . '", "' . $pass . '");');
+		tryandcatch(11, '$db = new PDO("' . $dsn . '", "' . $user . '", "' . $pass . '");');
 
 		$dsn = 'mysql:' . str_repeat('howmuch=canpdoeat;', 1000);
-		print tryandcatch(12, '$db = new PDO("' . $dsn . '", "' . $user . '", "' . $pass . '");');
+		tryandcatch(12, '$db = new PDO("' . $dsn . '", "' . $user . '", "' . $pass . '");');
 
 		$dsn = 'mysql:' . str_repeat('abcdefghij', 1024 * 10) . '=somevalue';
-		print tryandcatch(13, '$db = new PDO("' . $dsn . '", "' . $user . '", "' . $pass . '");');
+		tryandcatch(13, '$db = new PDO("' . $dsn . '", "' . $user . '", "' . $pass . '");');
 
 		if (PDO_MYSQL_TEST_HOST) {
 			$host = PDO_MYSQL_TEST_HOST;
@@ -295,6 +300,5 @@ MySQLPDOTest::skip();
 [006] invalid data source name, [n/a] n/a
 [007] could not find driver, [n/a] n/a
 [009] SQLSTATE[%s] [1045] Access denied for user 'dont%s'@'%s' (using password: YES), [n/a] n/a
-[010] SQLSTATE[%s] [1045] Access denied for user 'dont%s'@'%s' (using password: YES), [n/a] n/a
 [017] DSN=%s, SQLSTATE[%s] [%d] %s
 done!

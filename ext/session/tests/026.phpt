@@ -4,6 +4,7 @@ correct instantiation of references between variables in sessions
 <?php include('skipif.inc'); ?>
 --INI--
 session.use_cookies=0
+session.use_strict_mode=0
 session.cache_limiter=
 session.serialize_handler=php
 session.save_handler=files
@@ -20,7 +21,7 @@ class a {
  
 class b {
     public $a;
-    function b(&$a) {
+    function __construct(&$a) {
         $this->a = &$a;
     }
 }
@@ -43,6 +44,7 @@ $a = $_SESSION['a'];
 $b = $_SESSION['b'];
 echo "values after session:\n";
 var_dump($a,$b);
+session_destroy();
 ?>
 --EXPECTF--
 original values:

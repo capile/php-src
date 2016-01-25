@@ -201,7 +201,7 @@ class Point
   var $y;
   var $lable;
   
-  function Point($x, $y) {
+  function __construct($x, $y) {
     $this->x = $x;
     $this->y = $y;
   }
@@ -357,7 +357,7 @@ var_dump($global_var);
 test_unset3();
 var_dump($global_var);
 
-//Note: No error conditions relating to passing arugments can be tested
+//Note: No error conditions relating to passing arguments can be tested
 // because these are not functions but statements, it will result in syntax error.
 ?>
 ===DONE===
@@ -1271,7 +1271,7 @@ bool(false)
 bool(true)
 array(3) {
   [0]=>
-  string(5) "Point"
+  string(11) "__construct"
   [1]=>
   string(8) "setLable"
   [2]=>

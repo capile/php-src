@@ -1,8 +1,8 @@
 /*
    +----------------------------------------------------------------------+
-   | PHP Version 5                                                        |
+   | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2013 The PHP Group                                |
+   | Copyright (c) 1997-2016 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -22,20 +22,18 @@
 #ifndef PHP_GD_H
 #define PHP_GD_H
 
-#define HAVE_GDIMAGECREATEFROMPNG 1
-
 #if HAVE_LIBFREETYPE
 # ifndef ENABLE_GD_TTF
 #  define ENABLE_GD_TTF
 # endif
 #endif
 
-#if HAVE_LIBGD
+#if defined(HAVE_LIBGD) || defined(HAVE_GD_BUNDLED)
 
 /* open_basedir and safe_mode checks */
 #define PHP_GD_CHECK_OPEN_BASEDIR(filename, errormsg)                       \
-	if (!filename || php_check_open_basedir(filename TSRMLS_CC)) {      \
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, errormsg);      \
+	if (!filename || php_check_open_basedir(filename)) {      \
+		php_error_docref(NULL, E_WARNING, errormsg);      \
 		RETURN_FALSE;                                               \
 	}
 
@@ -61,18 +59,18 @@
 
 PHPAPI extern const char php_sig_gif[3];
 PHPAPI extern const char php_sig_jpg[3];
-PHPAPI extern const char php_sig_png[3];
+PHPAPI extern const char php_sig_png[8];
 
 extern zend_module_entry gd_module_entry;
 #define phpext_gd_ptr &gd_module_entry
 
+#include "php_version.h"
+#define PHP_GD_VERSION PHP_VERSION
+
 /* gd.c functions */
 PHP_MINFO_FUNCTION(gd);
 PHP_MINIT_FUNCTION(gd);
-#if HAVE_LIBT1 || HAVE_GD_FONTMUTEX
-PHP_MSHUTDOWN_FUNCTION(gd);
-#endif
-#if HAVE_GD_STRINGFT
+#if HAVE_GD_FREETYPE && HAVE_LIBFREETYPE
 PHP_RSHUTDOWN_FUNCTION(gd);
 #endif
 
@@ -123,9 +121,12 @@ PHP_FUNCTION(imagegrabscreen);
 
 PHP_FUNCTION(imagerotate);
 
+PHP_FUNCTION(imageflip);
+
 #ifdef HAVE_GD_BUNDLED
 PHP_FUNCTION(imageantialias);
-PHP_FUNCTION(imageflip);
+#endif
+
 PHP_FUNCTION(imagecrop);
 PHP_FUNCTION(imagecropauto);
 PHP_FUNCTION(imagescale);
@@ -133,7 +134,6 @@ PHP_FUNCTION(imageaffine);
 PHP_FUNCTION(imageaffinematrixget);
 PHP_FUNCTION(imageaffinematrixconcat);
 PHP_FUNCTION(imagesetinterpolation);
-#endif
 
 PHP_FUNCTION(imagesetthickness);
 PHP_FUNCTION(imagecopymergegray);
@@ -151,7 +151,7 @@ PHP_FUNCTION(imagecreatefromwbmp);
 PHP_FUNCTION(imagecreatefromgd);
 PHP_FUNCTION(imagecreatefromgd2);
 PHP_FUNCTION(imagecreatefromgd2part);
-#if defined(HAVE_GD_XPM) && defined(HAVE_GD_BUNDLED)
+#if defined(HAVE_GD_XPM)
 PHP_FUNCTION(imagecreatefromxpm);
 #endif
 
@@ -185,16 +185,6 @@ PHP_FUNCTION(imagesy);
 PHP_FUNCTION(imagedashedline);
 PHP_FUNCTION(imagettfbbox);
 PHP_FUNCTION(imagettftext);
-PHP_FUNCTION(imagepsloadfont);
-/*
-PHP_FUNCTION(imagepscopyfont);
-*/
-PHP_FUNCTION(imagepsfreefont);
-PHP_FUNCTION(imagepsencodefont);
-PHP_FUNCTION(imagepsextendfont);
-PHP_FUNCTION(imagepsslantfont);
-PHP_FUNCTION(imagepstext);
-PHP_FUNCTION(imagepsbbox);
 
 PHP_FUNCTION(jpeg2wbmp);
 PHP_FUNCTION(png2wbmp);
@@ -202,10 +192,8 @@ PHP_FUNCTION(image2wbmp);
 
 PHP_FUNCTION(imagecolormatch);
 
-#if HAVE_GD_BUNDLED
 PHP_FUNCTION(imagelayereffect);
 PHP_FUNCTION(imagexbm);
-#endif
 
 PHP_FUNCTION(imagefilter);
 PHP_FUNCTION(imageconvolution);

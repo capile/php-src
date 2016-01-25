@@ -1,14 +1,8 @@
 --TEST--
 CURL file uploading
+--INI--
 --SKIPIF--
-<?php
-if (!extension_loaded("curl")) {
-	exit("skip curl extension not loaded");
-}
-if (false === getenv('PHP_CURL_HTTP_REMOTE_SERVER'))  {
-	exit("skip PHP_CURL_HTTP_REMOTE_SERVER env variable is not defined");
-}
-?>
+<?php include 'skipif.inc'; ?>
 --FILE--
 <?php
 
@@ -25,7 +19,8 @@ function testcurl($ch, $name, $mime = '', $postname = '')
 	var_dump(curl_exec($ch));
 }
 
-$host = getenv('PHP_CURL_HTTP_REMOTE_SERVER');
+include 'server.inc';
+$host = curl_cli_server_start();
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, "{$host}/get.php?test=file");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -48,6 +43,7 @@ var_dump($file->getPostFilename());
 curl_setopt($ch, CURLOPT_POSTFIELDS, array("file" => $file));
 var_dump(curl_exec($ch));
 
+curl_setopt($ch, CURLOPT_SAFE_UPLOAD, 0);
 $params = array('file' => '@' . __DIR__ . '/curl_testdata1.txt');
 curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
 var_dump(curl_exec($ch));
@@ -75,8 +71,8 @@ string(%d) "curl_testdata1.txt|text/plain"
 string(%d) "foo.txt"
 string(%d) "foo.txt|application/octet-stream"
 
-Deprecated: curl_setopt(): The usage of the @filename API for file uploading is deprecated. Please use the CURLFile class instead in %s on line %d
-string(%d) "curl_testdata1.txt|application/octet-stream"
+Warning: curl_setopt(): Disabling safe uploads is no longer supported in %s on line %d
+string(0) ""
 string(0) ""
 string(%d) "array(1) {
   ["file"]=>

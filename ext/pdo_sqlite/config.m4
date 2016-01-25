@@ -4,8 +4,8 @@ dnl vim:et:sw=2:ts=2:
 
 PHP_ARG_WITH(pdo-sqlite, for sqlite 3 support for PDO,
 [  --without-pdo-sqlite[=DIR]
-                            PDO: sqlite 3 support.  DIR is the sqlite base
-                            install directory [BUNDLED]], $PHP_PDO)
+                          PDO: sqlite 3 support.  DIR is the sqlite base
+                          install directory [BUNDLED]], $PHP_PDO)
 
 if test "$PHP_PDO_SQLITE" != "no"; then
 
@@ -22,8 +22,8 @@ if test "$PHP_PDO_SQLITE" != "no"; then
       pdo_cv_inc_path=$abs_srcdir/ext
     elif test -f $abs_srcdir/ext/pdo/php_pdo_driver.h; then
       pdo_cv_inc_path=$abs_srcdir/ext
-    elif test -f $prefix/include/php/ext/pdo/php_pdo_driver.h; then
-      pdo_cv_inc_path=$prefix/include/php/ext
+    elif test -f $phpincludedir/ext/pdo/php_pdo_driver.h; then
+      pdo_cv_inc_path=$phpincludedir/ext
     else
       AC_MSG_ERROR([Cannot find php_pdo_driver.h.])
     fi

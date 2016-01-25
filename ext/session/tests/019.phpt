@@ -4,6 +4,7 @@ serializing references test case using globals
 <?php include('skipif.inc'); ?>
 --INI--
 session.use_cookies=0
+session.use_strict_mode=0
 session.cache_limiter=
 session.serialize_handler=php
 session.save_handler=files
@@ -14,7 +15,7 @@ error_reporting(E_ALL);
 
 class TFoo {
 	public $c;
-	function TFoo($c) {
+	function __construct($c) {
 		$this->c = $c;
 	}
 	function inc() {

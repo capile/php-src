@@ -68,7 +68,6 @@ echo "Done";
 --> http://secret:@www.php.net/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(10) "/index.php"
 --> http://:hideout@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(10) "/index.php"
 --> http://secret:hideout@www.php.net/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(10) "/index.php"
---> http://secret@hideout@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(10) "/index.php"
 --> http://secret:hid:out@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(10) "/index.php"
 --> nntp://news.php.net   : NULL
 --> ftp://ftp.gnu.org/gnu/glic/glibc.tar.gz   : string(22) "/gnu/glic/glibc.tar.gz"
@@ -88,13 +87,13 @@ echo "Done";
 --> scheme:   : NULL
 --> foo+bar://baz@bang/bla   : string(4) "/bla"
 --> gg:9130731   : string(7) "9130731"
---> http://user:@pass@host/path?argument?value#etc   : string(5) "/path"
 --> http://10.10.10.10/:80   : string(4) "/:80"
 --> http://x:?   : NULL
 --> x:blah.com   : string(8) "blah.com"
 --> x:/blah.com   : string(9) "/blah.com"
 --> x://::abc/?   : bool(false)
 --> http://::?   : NULL
+--> http://::#   : NULL
 --> x://::6.5   : NULL
 --> http://?:/   : string(1) "/"
 --> http://@?:/   : string(1) "/"
@@ -108,6 +107,7 @@ echo "Done";
 --> http://[x:80]/   : string(1) "/"
 -->    : string(0) ""
 --> /   : string(1) "/"
+--> /rest/Users?filter={"id":"123"}   : string(11) "/rest/Users"
 --> http:///blah.com   : bool(false)
 --> http://:80   : bool(false)
 --> http://user@:80   : bool(false)
@@ -117,8 +117,12 @@ echo "Done";
 --> http://@:/   : bool(false)
 --> http://:/   : bool(false)
 --> http://?   : bool(false)
+--> http://#   : bool(false)
 --> http://?:   : bool(false)
 --> http://:?   : bool(false)
 --> http://blah.com:123456   : bool(false)
 --> http://blah.com:abcdef   : bool(false)
+--> http://secret@hideout@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : bool(false)
+--> http://user:@pass@host/path?argument?value#etc   : bool(false)
+--> http://foo.com\@bar.com   : bool(false)
 Done

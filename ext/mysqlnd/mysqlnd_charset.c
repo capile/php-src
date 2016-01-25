@@ -1,8 +1,8 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 5                                                        |
+  | PHP Version 7                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2006-2013 The PHP Group                                |
+  | Copyright (c) 2006-2016 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -12,13 +12,12 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Authors: Georg Richter <georg@mysql.com>                             |
-  |          Andrey Hristov <andrey@mysql.com>                           |
+  | Authors: Andrey Hristov <andrey@mysql.com>                           |
   |          Ulf Wendel <uwendel@mysql.com>                              |
+  |          Georg Richter <georg@mysql.com>                             |
   +----------------------------------------------------------------------+
 */
 #include "php.h"
-#include "php_globals.h"
 #include "mysqlnd.h"
 #include "mysqlnd_priv.h"
 #include "mysqlnd_debug.h"
@@ -418,17 +417,57 @@ static uint mysqlnd_mbcharlen_utf16(unsigned int utf16)
 
 
 /* {{{ utf32 functions */
-static uint
-check_mb_utf32(const char *start __attribute((unused)), const char *end __attribute((unused)))
+static unsigned int check_mb_utf32(const char *start __attribute((unused)), const char *end __attribute((unused)))
 {
 	return 4;
 }
 
 
-static uint
-mysqlnd_mbcharlen_utf32(unsigned int utf32 __attribute((unused)))
+static unsigned int mysqlnd_mbcharlen_utf32(unsigned int utf32 __attribute((unused)))
 {
 	return 4;
+}
+/* }}} */
+
+
+/* {{{ gb18030 functions */
+#define is_gb18030_odd(c)          (0x81 <= (zend_uchar) (c) && (zend_uchar) (c) <= 0xFE)
+#define is_gb18030_even_2(c)       ((0x40 <= (zend_uchar) (c) && (zend_uchar) (c) <= 0x7E) || (0x80 <= (zend_uchar) (c) && (zend_uchar) (c) <= 0xFE))
+#define is_gb18030_even_4(c)       (0x30 <= (zend_uchar) (c) && (zend_uchar) (c) <= 0x39)
+
+
+static unsigned int mysqlnd_mbcharlen_gb18030(unsigned int c)
+{
+	if (c <= 0xFF) {
+		return !is_gb18030_odd(c);
+	}
+	if (c > 0xFFFF || !is_gb18030_odd((c >> 8) & 0xFF)) {
+		return 0;
+	}
+	if (is_gb18030_even_2((c & 0xFF))) {
+	    return 2;
+	}
+	if (is_gb18030_even_4((c & 0xFF))) {
+		return 4;
+	}
+
+	return 0;
+}
+
+
+static unsigned int my_ismbchar_gb18030(const char * start, const char * end)
+{
+	if (end - start <= 1 || !is_gb18030_odd(start[0])) {
+		return 0;
+	}
+
+	if (is_gb18030_even_2(start[1])) {
+		return 2;
+	} else if (end - start > 3 && is_gb18030_even_4(start[1]) && is_gb18030_odd(start[2]) && is_gb18030_even_4(start[3])) {
+		return 4;
+	}
+
+	return 0;
 }
 /* }}} */
 
@@ -643,6 +682,8 @@ const MYSQLND_CHARSET mysqlnd_charsets[] =
 	{ 245, UTF8_MB4, UTF8_MB4"_croatian_ci", 1, 4, "", mysqlnd_mbcharlen_utf8, check_mb_utf8_valid},
 	{ 246, UTF8_MB4, UTF8_MB4"_unicode_520_ci", 1, 4, "", mysqlnd_mbcharlen_utf8, check_mb_utf8_valid},
 	{ 247, UTF8_MB4, UTF8_MB4"_vietnamese_ci", 1, 4, "", mysqlnd_mbcharlen_utf8, check_mb_utf8_valid},
+	{ 248, "gb18030", "gb18030_chinese_ci", 1, 4, "", mysqlnd_mbcharlen_gb18030, my_ismbchar_gb18030},
+	{ 249, "gb18030", "gb18030_bin", 1, 4, "", mysqlnd_mbcharlen_gb18030, my_ismbchar_gb18030},
 
 	{ 254, UTF8_MB3, UTF8_MB3"_general_cs", 1, 3, "", mysqlnd_mbcharlen_utf8, check_mb_utf8_valid},
 	{   0, NULL, NULL, 0, 0, NULL, NULL, NULL}
@@ -684,8 +725,8 @@ PHPAPI const MYSQLND_CHARSET * mysqlnd_find_charset_name(const char * const name
 
 
 /* {{{ mysqlnd_cset_escape_quotes */
-PHPAPI ulong mysqlnd_cset_escape_quotes(const MYSQLND_CHARSET * const cset, char *newstr,
-										const char * escapestr, size_t escapestr_len TSRMLS_DC)
+PHPAPI zend_ulong mysqlnd_cset_escape_quotes(const MYSQLND_CHARSET * const cset, char *newstr,
+										const char * escapestr, size_t escapestr_len)
 {
 	const char 	*newstr_s = newstr;
 	const char 	*newstr_e = newstr + 2 * escapestr_len;
@@ -738,8 +779,8 @@ PHPAPI ulong mysqlnd_cset_escape_quotes(const MYSQLND_CHARSET * const cset, char
 
 
 /* {{{ mysqlnd_cset_escape_slashes */
-PHPAPI ulong mysqlnd_cset_escape_slashes(const MYSQLND_CHARSET * const cset, char *newstr,
-										 const char * escapestr, size_t escapestr_len TSRMLS_DC)
+PHPAPI zend_ulong mysqlnd_cset_escape_slashes(const MYSQLND_CHARSET * const cset, char *newstr,
+										 const char * escapestr, size_t escapestr_len)
 {
 	const char 	*newstr_s = newstr;
 	const char 	*newstr_e = newstr + 2 * escapestr_len;
@@ -823,7 +864,7 @@ static struct st_mysqlnd_plugin_charsets mysqlnd_plugin_charsets_plugin =
 		MYSQLND_PLUGIN_API_VERSION,
 		"charsets",
 		MYSQLND_VERSION_ID,
-		MYSQLND_VERSION,
+		PHP_MYSQLND_VERSION,
 		"PHP License 3.01",
 		"Andrey Hristov <andrey@mysql.com>,  Ulf Wendel <uwendel@mysql.com>, Georg Richter <georg@mysql.com>",
 		{
@@ -845,9 +886,9 @@ static struct st_mysqlnd_plugin_charsets mysqlnd_plugin_charsets_plugin =
 
 /* {{{ mysqlnd_charsets_plugin_register */
 void
-mysqlnd_charsets_plugin_register(TSRMLS_D)
+mysqlnd_charsets_plugin_register(void)
 {
-	mysqlnd_plugin_register_ex((struct st_mysqlnd_plugin_header *) &mysqlnd_plugin_charsets_plugin TSRMLS_CC);
+	mysqlnd_plugin_register_ex((struct st_mysqlnd_plugin_header *) &mysqlnd_plugin_charsets_plugin);
 }
 /* }}} */
 

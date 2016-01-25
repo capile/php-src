@@ -87,7 +87,7 @@ var_dump($c);
 
 echo "Test 9\n";
 
-$c = oci_new_connect('/', '', 'c', null, OCI_SYSDBA+OCI_CRED_EXT);
+$c = oci_new_connect('/', '', 'd', null, OCI_SYSDBA+OCI_CRED_EXT);
 if (!$c) {
 	$m = oci_error();
 	var_dump($m);
@@ -96,7 +96,7 @@ var_dump($c);
 
 echo "Test 10\n";
 
-$c = oci_new_connect('/', '', 'c', null, OCI_SYSOPER+OCI_CRED_EXT);
+$c = oci_new_connect('/', '', 'd', null, OCI_SYSOPER+OCI_CRED_EXT);
 if (!$c) {
 	$m = oci_error();
 	var_dump($m);
@@ -142,56 +142,56 @@ Test 7
 
 Warning: oci_new_connect(): ORA-12154: %s in %s on line %d
 array(4) {
-  [%u|b%"code"]=>
+  ["code"]=>
   int(12154)
-  [%u|b%"message"]=>
-  %unicode|string%(%d) "ORA-12154: %s"
-  [%u|b%"offset"]=>
+  ["message"]=>
+  string(%d) "ORA-12154: %s"
+  ["offset"]=>
   int(0)
-  [%u|b%"sqltext"]=>
-  %unicode|string%(0) ""
+  ["sqltext"]=>
+  string(0) ""
 }
 bool(false)
 Test 8
 
 Warning: oci_new_connect(): ORA-12154: %s in %s on line %d
 array(4) {
-  [%u|b%"code"]=>
+  ["code"]=>
   int(12154)
-  [%u|b%"message"]=>
-  %unicode|string%(%d) "ORA-12154: %s"
-  [%u|b%"offset"]=>
+  ["message"]=>
+  string(%d) "ORA-12154: %s"
+  ["offset"]=>
   int(0)
-  [%u|b%"sqltext"]=>
-  %unicode|string%(0) ""
+  ["sqltext"]=>
+  string(0) ""
 }
 bool(false)
 Test 9
 
 Warning: oci_new_connect(): ORA-%d: TNS:%s %s on line %d
 array(4) {
-  [%u|b%"code"]=>
+  ["code"]=>
   int(%d)
-  [%u|b%"message"]=>
-  %unicode|string%(%d) "ORA-%d: %s"
-  [%u|b%"offset"]=>
+  ["message"]=>
+  string(%d) "ORA-%d: %s"
+  ["offset"]=>
   int(0)
-  [%u|b%"sqltext"]=>
-  %unicode|string%(0) ""
+  ["sqltext"]=>
+  string(0) ""
 }
 bool(false)
 Test 10
 
 Warning: oci_new_connect(): ORA-%d: TNS:%s %s on line %d
 array(4) {
-  [%u|b%"code"]=>
+  ["code"]=>
   int(%d)
-  [%u|b%"message"]=>
-  %unicode|string%(%d) "ORA-%d: %s"
-  [%u|b%"offset"]=>
+  ["message"]=>
+  string(%d) "ORA-%d: %s"
+  ["offset"]=>
   int(0)
-  [%u|b%"sqltext"]=>
-  %unicode|string%(0) ""
+  ["sqltext"]=>
+  string(0) ""
 }
 bool(false)
 ===DONE===

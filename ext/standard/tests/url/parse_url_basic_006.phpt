@@ -65,10 +65,9 @@ echo "Done";
 --> http://www.php.net:80/index.php?test=1&test2=char&test3=mixesCI   : NULL
 --> www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : NULL
 --> http://secret@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : NULL
---> http://secret:@www.php.net/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : NULL
+--> http://secret:@www.php.net/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(0) ""
 --> http://:hideout@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(7) "hideout"
 --> http://secret:hideout@www.php.net/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(7) "hideout"
---> http://secret@hideout@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : NULL
 --> http://secret:hid:out@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : string(7) "hid:out"
 --> nntp://news.php.net   : NULL
 --> ftp://ftp.gnu.org/gnu/glic/glibc.tar.gz   : NULL
@@ -88,13 +87,13 @@ echo "Done";
 --> scheme:   : NULL
 --> foo+bar://baz@bang/bla   : NULL
 --> gg:9130731   : NULL
---> http://user:@pass@host/path?argument?value#etc   : string(5) "@pass"
 --> http://10.10.10.10/:80   : NULL
 --> http://x:?   : NULL
 --> x:blah.com   : NULL
 --> x:/blah.com   : NULL
 --> x://::abc/?   : bool(false)
 --> http://::?   : NULL
+--> http://::#   : NULL
 --> x://::6.5   : NULL
 --> http://?:/   : NULL
 --> http://@?:/   : NULL
@@ -108,6 +107,7 @@ echo "Done";
 --> http://[x:80]/   : NULL
 -->    : NULL
 --> /   : NULL
+--> /rest/Users?filter={"id":"123"}   : NULL
 --> http:///blah.com   : bool(false)
 --> http://:80   : bool(false)
 --> http://user@:80   : bool(false)
@@ -117,8 +117,12 @@ echo "Done";
 --> http://@:/   : bool(false)
 --> http://:/   : bool(false)
 --> http://?   : bool(false)
+--> http://#   : bool(false)
 --> http://?:   : bool(false)
 --> http://:?   : bool(false)
 --> http://blah.com:123456   : bool(false)
 --> http://blah.com:abcdef   : bool(false)
+--> http://secret@hideout@www.php.net:80/index.php?test=1&test2=char&test3=mixesCI#some_page_ref123   : bool(false)
+--> http://user:@pass@host/path?argument?value#etc   : bool(false)
+--> http://foo.com\@bar.com   : bool(false)
 Done

@@ -102,10 +102,9 @@ void php_gd_error_ex(int type, const char *format, ...)
 {
 	va_list args;
 
-	TSRMLS_FETCH();
 
 	va_start(args, format);
-	php_verror(NULL, "", type, format, args TSRMLS_CC);
+	php_verror(NULL, "", type, format, args);
 	va_end(args);
 }
 
@@ -113,10 +112,9 @@ void php_gd_error(const char *format, ...)
 {
 	va_list args;
 
-	TSRMLS_FETCH();
 
 	va_start(args, format);
-	php_verror(NULL, "", E_WARNING, format, args TSRMLS_CC);
+	php_verror(NULL, "", E_WARNING, format, args);
 	va_end(args);
 }
 
@@ -1098,12 +1096,12 @@ void gdImageLine (gdImagePtr im, int x1, int y1, int x2, int y2, int color)
 	int thick = im->thick;
 
 	if (color == gdAntiAliased) {
-		/* 
+		/*
 		   gdAntiAliased passed as color: use the much faster, much cheaper
 		   and equally attractive gdImageAALine implementation. That
 		   clips too, so don't clip twice.
 		   */
-		gdImageAALine(im, x1, y1, x2, y2, im->AA_color); 
+		gdImageAALine(im, x1, y1, x2, y2, im->AA_color);
 		return;
 	}
 
@@ -1774,9 +1772,13 @@ void gdImageFillToBorder (gdImagePtr im, int x, int y, int border, int color)
 
 	if (x >= im->sx) {
 		x = im->sx - 1;
+	} else if (x < 0) {
+		x = 0;
 	}
 	if (y >= im->sy) {
 		y = im->sy - 1;
+	} else if (y < 0) {
+		y = 0;
 	}
 
 	for (i = x; i >= 0; i--) {
@@ -1876,7 +1878,7 @@ void gdImageFill(gdImagePtr im, int x, int y, int nc)
 		return;
 	}
 
-	alphablending_bak = im->alphaBlendingFlag;	
+	alphablending_bak = im->alphaBlendingFlag;
 	im->alphaBlendingFlag = 0;
 
 	if (nc==gdTiled){
@@ -1888,7 +1890,7 @@ void gdImageFill(gdImagePtr im, int x, int y, int nc)
 	wx2=im->sx;wy2=im->sy;
 	oc = gdImageGetPixel(im, x, y);
 	if (oc==nc || x<0 || x>wx2 || y<0 || y>wy2) {
-		im->alphaBlendingFlag = alphablending_bak;	
+		im->alphaBlendingFlag = alphablending_bak;
 		return;
 	}
 
@@ -1951,14 +1953,13 @@ skip:			for (x++; x<=x2 && (gdImageGetPixel(im, x, y)!=oc); x++);
 	efree(stack);
 
 done:
-	im->alphaBlendingFlag = alphablending_bak;	
+	im->alphaBlendingFlag = alphablending_bak;
 }
 
 static void _gdImageFillTiled(gdImagePtr im, int x, int y, int nc)
 {
 	int i, l, x1, x2, dy;
 	int oc;   /* old pixel value */
-	int tiled;
 	int wx2,wy2;
 	/* stack of filled segments */
 	struct seg *stack;
@@ -1970,7 +1971,6 @@ static void _gdImageFillTiled(gdImagePtr im, int x, int y, int nc)
 	}
 
 	wx2=im->sx;wy2=im->sy;
-	tiled = nc==gdTiled;
 
 	nc =  gdImageTileGet(im,x,y);
 
@@ -2035,7 +2035,6 @@ void gdImageRectangle (gdImagePtr im, int x1, int y1, int x2, int y2, int color)
 {
 	int x1h = x1, x1v = x1, y1h = y1, y1v = y1, x2h = x2, x2v = x2, y2h = y2, y2v = y2;
 	int thick = im->thick;
-	int half1 = 1;
 	int t;
 
 	if (x1 == x2 && y1 == y2 && thick == 1) {
@@ -2047,7 +2046,9 @@ void gdImageRectangle (gdImagePtr im, int x1, int y1, int x2, int y2, int color)
 		t=y1;
 		y1 = y2;
 		y2 = t;
-
+	}
+	
+	if (x2 < x1) {
 		t = x1;
 		x1 = x2;
 		x2 = t;
@@ -2057,10 +2058,10 @@ void gdImageRectangle (gdImagePtr im, int x1, int y1, int x2, int y2, int color)
 	if (thick > 1) {
 		int cx, cy, x1ul, y1ul, x2lr, y2lr;
 		int half = thick >> 1;
-		half1 = thick - half;
+
 		x1ul = x1 - half;
 		y1ul = y1 - half;
-		
+
 		x2lr = x2 + half;
 		y2lr = y2 + half;
 
@@ -2098,12 +2099,16 @@ void gdImageRectangle (gdImagePtr im, int x1, int y1, int x2, int y2, int color)
 
 		return;
 	} else {
-		y1v = y1h + 1;
-		y2v = y2h - 1;
-		gdImageLine(im, x1h, y1h, x2h, y1h, color);
-		gdImageLine(im, x1h, y2h, x2h, y2h, color);
-		gdImageLine(im, x1v, y1v, x1v, y2v, color);
-		gdImageLine(im, x2v, y1v, x2v, y2v, color);
+		if (x1 == x2 || y1 == y2) {
+			gdImageLine(im, x1, y1, x2, y2, color);
+		} else {
+			y1v = y1h + 1;
+			y2v = y2h - 1;
+			gdImageLine(im, x1h, y1h, x2h, y1h, color);
+			gdImageLine(im, x1h, y2h, x2h, y2h, color);
+			gdImageLine(im, x1v, y1v, x1v, y2v, color);
+			gdImageLine(im, x2v, y1v, x2v, y2v, color);
+		}
 	}
 }
 
@@ -2258,7 +2263,7 @@ void gdImageCopyMerge (gdImagePtr dst, gdImagePtr src, int dstX, int dstY, int s
 	int tox, toy;
 	int ncR, ncG, ncB;
 	toy = dstY;
-	
+
 	for (y = srcY; y < (srcY + h); y++) {
 		tox = dstX;
 		for (x = srcX; x < (srcX + w); x++) {
@@ -2355,9 +2360,7 @@ void gdImageCopyResized (gdImagePtr dst, gdImagePtr src, int dstX, int dstY, int
 	int colorMap[gdMaxColors];
 	/* Stretch vectors */
 	int *stx, *sty;
-	/* We only need to use floating point to determine the correct stretch vector for one line's worth. */
-	double accum;
-	
+
 	if (overflow2(sizeof(int), srcW)) {
 		return;
 	}
@@ -2367,7 +2370,6 @@ void gdImageCopyResized (gdImagePtr dst, gdImagePtr src, int dstX, int dstY, int
 
 	stx = (int *) gdMalloc (sizeof (int) * srcW);
 	sty = (int *) gdMalloc (sizeof (int) * srcH);
-	accum = 0;
 
 	/* Fixed by Mao Morimoto 2.0.16 */
 	for (i = 0; (i < srcW); i++) {
@@ -2903,7 +2905,7 @@ int gdAlphaBlend (int dst, int src) {
     src_weight = gdAlphaTransparent - src_alpha;
     dst_weight = (gdAlphaTransparent - dst_alpha) * src_alpha / gdAlphaMax;
     tot_weight = src_weight + dst_weight;
-    
+
 /* -------------------------------------------------------------------- */
 /*      What red, green and blue result values will we use?             */
 /* -------------------------------------------------------------------- */
@@ -3017,7 +3019,6 @@ void gdImageGetClip (gdImagePtr im, int *x1P, int *y1P, int *x2P, int *y2P)
 int gdImagePaletteToTrueColor(gdImagePtr src)
 {
 	unsigned int y;
-	unsigned char alloc_y = 0, alloc_aa = 0;
 	unsigned int yy;
 
 	if (src == NULL) {
@@ -3050,7 +3051,7 @@ int gdImagePaletteToTrueColor(gdImagePtr src)
 			for (x = 0; x < sx; x++) {
 				const unsigned char c = *(src_row + x);
 				if (c == src->transparent) {
-					*(dst_row + x) = gdTrueColorAlpha(0, 0, 0, 127);;
+					*(dst_row + x) = gdTrueColorAlpha(0, 0, 0, 127);
 				} else {
 					*(dst_row + x) = gdTrueColorAlpha(src->red[c], src->green[c], src->blue[c], src->alpha[c]);
 				}
@@ -3058,8 +3059,8 @@ int gdImagePaletteToTrueColor(gdImagePtr src)
 		}
 	}
 
-	/* free old palette buffer */
-	for (yy = y - 1; yy >= yy - 1; yy--) {
+	/* free old palette buffer (y is sy) */
+	for (yy = 0; yy < y; yy++) {
 		gdFree(src->pixels[yy]);
 	}
 	gdFree(src->pixels);
@@ -3067,16 +3068,20 @@ int gdImagePaletteToTrueColor(gdImagePtr src)
 	src->pixels = NULL;
 	src->alphaBlendingFlag = 0;
 	src->saveAlphaFlag = 1;
+
+	if (src->transparent >= 0) {
+		const unsigned char c = src->transparent;
+		src->transparent =  gdTrueColorAlpha(src->red[c], src->green[c], src->blue[c], src->alpha[c]);
+	}
+
 	return 1;
 
 clean_on_error:
-	if (y > 0) {
-
-		for (yy = y; yy >= yy - 1; y--) {
-			gdFree(src->tpixels[y]);
-		}
-		gdFree(src->tpixels);
+	/* free new true color buffer (y is not allocated, have failed) */
+	for (yy = 0; yy < y; yy++) {
+		gdFree(src->tpixels[yy]);
 	}
+	gdFree(src->tpixels);
 	return 0;
 }
 

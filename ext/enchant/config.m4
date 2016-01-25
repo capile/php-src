@@ -3,7 +3,7 @@ dnl $Id$
 dnl
 
 PHP_ARG_WITH(enchant,for ENCHANT support,
-[  --with-enchant[=DIR]     Include enchant support.
+[  --with-enchant[=DIR]      Include enchant support.
                           GNU Aspell version 1.1.3 or higher required.])
 
 if test "$PHP_ENCHANT" != "no"; then
@@ -37,6 +37,6 @@ if test "$PHP_ENCHANT" != "no"; then
 	[
 	  AC_DEFINE(HAVE_ENCHANT_BROKER_SET_PARAM,             1, [ ])
 	  AC_DEFINE(ENCHANT_VERSION_STRING,             "1.5.x", [ ])
-	], [], [ -L$ENCHANT_LIB $ENCHANT_SHARED_LIBADD])
+	], [], [ -L$ENCHANT_LIBDIR $ENCHANT_SHARED_LIBADD])
 
 fi

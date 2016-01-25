@@ -4,15 +4,27 @@ dnl vim: se ts=2 sw=2 et:
 
 PHP_ARG_WITH(pdo-mysql, for MySQL support for PDO,
 [  --with-pdo-mysql[=DIR]    PDO: MySQL support. DIR is the MySQL base directory
-                                 If no value or mysqlnd is passed as DIR, the
-                                 MySQL native driver will be used])
+                          If no value or mysqlnd is passed as DIR, the
+                          MySQL native driver will be used])
 
 if test -z "$PHP_ZLIB_DIR"; then
   PHP_ARG_WITH(zlib-dir, for the location of libz,
-  [  --with-zlib-dir[=DIR]       PDO_MySQL: Set the path to libz install prefix], no, no)
+  [  --with-zlib-dir[=DIR]     PDO_MySQL: Set the path to libz install prefix], no, no)
 fi
 
 if test "$PHP_PDO_MYSQL" != "no"; then
+  dnl This depends on ext/mysqli/config.m4 providing the
+  dnl PHP_MYSQL_SOCKET_SEARCH macro and --with-mysql-sock configure option.
+  AC_MSG_CHECKING([for MySQL UNIX socket location])
+  if test "$PHP_MYSQL_SOCK" != "no" && test "$PHP_MYSQL_SOCK" != "yes"; then
+    MYSQL_SOCK=$PHP_MYSQL_SOCK
+    AC_DEFINE_UNQUOTED(PHP_MYSQL_UNIX_SOCK_ADDR, "$MYSQL_SOCK", [ ])
+    AC_MSG_RESULT([$MYSQL_SOCK])
+  elif test "$PHP_MYSQL_SOCK" = "yes"; then
+    PHP_MYSQL_SOCKET_SEARCH
+  else
+    AC_MSG_RESULT([no])
+  fi
 
   if test "$PHP_PDO" = "no" && test "$ext_shared" = "no"; then
     AC_MSG_ERROR([PDO is not enabled! Add --enable-pdo to your configure line.])
@@ -130,8 +142,8 @@ if test "$PHP_PDO_MYSQL" != "no"; then
       pdo_cv_inc_path=$abs_srcdir/ext
     elif test -f $abs_srcdir/ext/pdo/php_pdo_driver.h; then
       pdo_cv_inc_path=$abs_srcdir/ext
-    elif test -f $prefix/include/php/ext/pdo/php_pdo_driver.h; then
-      pdo_cv_inc_path=$prefix/include/php/ext
+    elif test -f $phpincludedir/ext/pdo/php_pdo_driver.h; then
+      pdo_cv_inc_path=$phpincludedir/ext
     else
       AC_MSG_ERROR([Cannot find php_pdo_driver.h.])
     fi
@@ -144,7 +156,7 @@ if test "$PHP_PDO_MYSQL" != "no"; then
   fi
 
   dnl fix after renaming to pdo_mysql
-  PHP_NEW_EXTENSION(pdo_mysql, pdo_mysql.c mysql_driver.c mysql_statement.c, $ext_shared,,-I$pdo_cv_inc_path -I)
+  PHP_NEW_EXTENSION(pdo_mysql, pdo_mysql.c mysql_driver.c mysql_statement.c, $ext_shared,,-I$pdo_cv_inc_path -I -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
   ifdef([PHP_ADD_EXTENSION_DEP],
   [
     PHP_ADD_EXTENSION_DEP(pdo_mysql, pdo)

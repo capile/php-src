@@ -31,64 +31,20 @@ bug($db, array(PDO::ATTR_EMULATE_PREPARES => 0));
 bug($db, array(PDO::ATTR_EMULATE_PREPARES => 1));
 
 echo "Test 3\n";
-bug($db, array(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT => 0));
-bug($db, array(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT => 1));
-
-echo "Test 4\n";
 $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, 1);
 bug($db);
 $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, 0);
 bug($db);
 
-echo "Test 5\n";
-$db->setAttribute(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT, 1);
-bug($db);
-$db->setAttribute(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT, 0);
-bug($db);
-
-
 putenv('PDOTEST_ATTR='.serialize(array(
 	PDO::ATTR_EMULATE_PREPARES => 1,
 )));
 $db = PDOTest::factory('PDO', false);
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-echo "Test 6\n";
+echo "Test 4\n";
 bug($db);
 bug($db, array(PDO::ATTR_EMULATE_PREPARES => 0));
-bug($db, array(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT => 0));
-
-
-putenv('PDOTEST_ATTR='.serialize(array(
-	PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT => 1,
-)));
-
-$db = PDOTest::factory('PDO', false);
-$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-echo "Test 7\n";
-bug($db);
-bug($db, array(PDO::ATTR_EMULATE_PREPARES => 0));
-bug($db, array(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT => 0));
-
-
-putenv('PDOTEST_ATTR='.serialize(array(
-	PDO::ATTR_EMULATE_PREPARES => 1,
-	PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT => 1,
-)));
-
-$db = PDOTest::factory('PDO', false);
-$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-echo "Test 8\n";
-bug($db);
-bug($db, array(PDO::ATTR_EMULATE_PREPARES => 0));
-bug($db, array(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT => 0));
-bug($db, array(
-	PDO::ATTR_EMULATE_PREPARES => 0,
-	PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT => 0,
-));
-
 
 putenv('PDOTEST_ATTR');
 
@@ -104,31 +60,15 @@ function bug($db, $options = array()) {
 	}
 }
 
---EXPECT--
+--EXPECTF--
 Test 1
 42P18
 Test 2
 42P18
 OK
 Test 3
-42P18
 OK
+42P18
 Test 4
-OK
-42P18
-Test 5
-OK
-42P18
-Test 6
-OK
-42P18
-OK
-Test 7
-OK
-OK
-42P18
-Test 8
-OK
-OK
 OK
 42P18

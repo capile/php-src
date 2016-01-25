@@ -29,14 +29,12 @@ extern "C" {
 #include <sys/types.h>
 #if defined(_WIN32) && !defined(__MINGW32__)
 # include <windows.h>
-# include "win32/php_stdint.h"
 # include "config.w32.h"
 #else
 # include "php_config.h"
-# ifdef HAVE_STDINT_H
-#  include <stdint.h>
-# endif
 #endif
+
+#include "php_stdint.h"
 
 /* Compile with -DPHP_HTTP_PARSER_STRICT=0 to make less checks, but run
  * faster
@@ -92,6 +90,7 @@ enum php_http_method
   , PHP_HTTP_MOVE
   , PHP_HTTP_PROPFIND
   , PHP_HTTP_PROPPATCH
+  , PHP_HTTP_SEARCH
   , PHP_HTTP_UNLOCK
   /* subversion */
   , PHP_HTTP_REPORT

@@ -1,7 +1,5 @@
 --TEST--
 Bug #60634 (Segmentation fault when trying to die() in SessionHandler::write())
---XFAIL--
-Long term low priority bug, working on it
 --INI--
 session.save_path=
 session.name=PHPSESSID
@@ -41,6 +39,17 @@ session_start();
 session_write_close();
 echo "um, hi\n";
 
+/*
+FIXME: Since session module try to write/close session data in
+RSHUTDOWN, write() is executed twices. This is caused by undefined
+function error and zend_bailout(). Current session module codes
+depends on this behavior. These codes should be modified to remove
+multiple write().
+*/
+
 ?>
 --EXPECTF--
 write: goodbye cruel world
+write: goodbye cruel world
+close: goodbye cruel world
+

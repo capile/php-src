@@ -23,7 +23,8 @@ echo "*** Testing session_set_save_handler() : variation ***\n";
 
 function noisy_gc($maxlifetime) {
 	echo("GC [".$maxlifetime."]\n");
-	gc($maxlifetime);
+	echo gc($maxlifetime)." deleted\n";
+	return true;
 }
 
 require_once "save_handler.inc";
@@ -51,8 +52,9 @@ ob_end_flush();
 *** Testing session_set_save_handler() : variation ***
 
 Open [%s,PHPSESSID]
-Read [%s,%s]
 GC [0]
+1 deleted
+Read [%s,%s]
 array(3) {
   ["Blah"]=>
   string(12) "Hello World!"
@@ -65,19 +67,12 @@ Write [%s,%s,Blah|s:12:"Hello World!";Foo|b:0;Guff|i:1234567890;]
 Close [%s,PHPSESSID]
 NULL
 Open [%s,PHPSESSID]
-Read [%s,%s]
 GC [0]
-array(3) {
-  ["Blah"]=>
-  string(12) "Hello World!"
-  ["Foo"]=>
-  bool(false)
-  ["Guff"]=>
-  int(1234567890)
+1 deleted
+Read [%s,%s]
+array(0) {
 }
 Destroy [%s,%s]
-
-Warning: unlink(%s): No such file or directory in %s on line %d
 Close [%s,PHPSESSID]
 bool(true)
 
